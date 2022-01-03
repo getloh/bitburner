@@ -1,9 +1,9 @@
 // 'Breaker' script for Bitburner
-//  Version 3.1
+//  Version 3.2 - added thread calculation function
 export async function main(ns) {
     ns.print("Starting breaker script");
     ns.disableLog("getHackingLevel");
-    let currentPC = ns.hostname;
+    let currentPC = ns.getHostname();
     let network = ns.scan(currentPC); // Will list all computers on network
     let portHacks = 0;
     let threadRatio = [1, 4, 3];
