@@ -1,18 +1,19 @@
-// Stock market bot for bitburner
-// buys and sells stock, hopefully for a profit...
+// Stock market bot for bitburner - https://danielyxie.github.io/bitburner/
+// Runs infinitely - buys and sells stock, hopefully for a profit...
 // version 1.21 - Added check for max stocks, cleaned things up a bit, cycle complete prints less frequently
 
 export async function main(ns) {
     ns.print("Starting script here");
-
     ns.disableLog('sleep');
     ns.disableLog('getServerMoneyAvailable');
 
     let stockSymbols = ns.stock.getSymbols(); // all symbols
     let portfolio = []; // init portfolio
-    const forecastThresh = 0.65; // Buy above this 
-    const minimumCash = 50000000; // Minimum cash in the bank
     let cycle = 0;
+// ~~~~~~~You can edit these~~~~~~~~
+    const forecastThresh = 0.65; // Buy above this confidence level (forecast%)
+    const minimumCash = 50000000; // Minimum cash to keep
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     ns.print("Starting run - Do we own any stocks?"); //Finds and adds any stocks we already own
     for(const stock of stockSymbols){
@@ -69,7 +70,6 @@ export async function main(ns) {
     };
 
     function stockBuyQuantCalc(stockPrice, stock){ // Calculates how many shares to buy
-        
         let playerMoney = ns.getServerMoneyAvailable('home') - minimumCash;
         let maxSpend = playerMoney * 0.25;
         let calcShares = maxSpend/stockPrice;
@@ -79,6 +79,5 @@ export async function main(ns) {
             return maxShares
         }
         else {return calcShares}
-        
     }
 }

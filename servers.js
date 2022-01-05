@@ -1,5 +1,9 @@
-// Server purchasing and automated run script for Bitburner
-// Version 1.1 - 
+// Server purchasing script for Bitburner - https://danielyxie.github.io/bitburner/
+// Runs until satisfied - Max servers @ the RAM specified by argument[0]
+
+// To do - An argument which can delete and rebuy servers at higher RAM
+
+// Version 1.1 -
 // Amended to breaker.js from breakerlite.js (since it now calculates RAM), added arguments to better change the RAM wanted
 // now overwrites breaker.js on a recover
 // Added toasts for purchasing and how much a server costs

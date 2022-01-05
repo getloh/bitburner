@@ -1,5 +1,7 @@
-// 'Breaker' script for Bitburner
-//  Version 3.2 - added thread calculation function
+// 'Breaker' bot for Bitburner - https://danielyxie.github.io/bitburner/
+// Runs infinitely - Continually polls servers to see if they can be rooted, then runs hack/weak/growscript on them
+// Version 3.2 - added thread calculation function
+
 export async function main(ns) {
     ns.print("Starting breaker script");
     ns.disableLog("getHackingLevel");

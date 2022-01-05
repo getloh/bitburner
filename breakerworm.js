@@ -1,4 +1,5 @@
 // breaker - worm edition - copies itself to other machines and runs.
+// No longer necessary - defunct
 
 export async function main(ns) {
     ns.print("Starting script here");
