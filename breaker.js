@@ -1,25 +1,28 @@
 // 'Breaker' bot for Bitburner - https://danielyxie.github.io/bitburner/
 // Runs infinitely - Continually polls servers to see if they can be rooted, then runs hack/weak/growscript on them
-// Version 3.3 - added thread calculation multiplier - multiplies threads for use on low hack skill, high RAM host.
+// Version 3.41 - Remade the RAM/thread calculator + amended method of filtering own servers
 
 export async function main(ns) {
+
+    // ~~~~~~~ Editable variables ~~~~~~~
+    const blacklist = ["home", "darkweb", "CSEC", "avmnite-02h", "I.I.I.I", "run4theh111z", ".","The-Cave"]; // do not run on these machines
+    const ownedServerName = "plex"
+    const threadRatio = [1, 10, 5];
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     ns.print("Starting breaker script");
     ns.disableLog("getHackingLevel");
-    let currentPC = ns.getHostname();
+    const currentPC = ns.getHostname();
     let network = ns.scan(currentPC); // Will list all computers on network
     let portHacks = 0;
-    let threadRatio = [1, 4, 3];
-    let threads = threadCount() //hack, grow, weaken
-    let blacklist = ["home", "darkweb", "CSEC", "avmnite-02h", "I.I.I.I", "run4theh111z", ".", "plex0", "plex1", "plex2", "plex3", "plex4", "plex5", "plex6", "plex7", "plex8", "plex9", "plex10", "plex11", "plex12", "plex13", "plex14", "plex15", "plex16", "plex17", "plex18", "plex19", "plex20", "plex21", "plex22", "plex23", "plex24"];
-
+    let threads = threadCount() //[hack, grow, weaken]
 
     while (true) {
         // -------- This loop scans the wide network and adds more nodes each scan ---------
-        for (let i = 0; i < network.length; i++) { // for each computer, scan it's network
-            let iList = ns.scan(network[i]);
-            for (let j = 0; j < iList.length; j++) { //for each item in the iList
-                if (network.find(element => element == iList[j]) == undefined) { // iList[j] is not in the big list..
-                    network.push(iList[j]); // add it to the master list
+        for (let i = 0; i < network.length; i++) {          // for each computer, scan it's network
+            let iList = ns.scan(network[i]);                // each computers network scan result is iList
+            for (let j = 0; j < iList.length; j++) {        // then for each item in the iList
+                if (network.find(element => element == iList[j]) == undefined) { // if iList[j] is not in the big list..
+                    network.push(iList[j]);                 // add it to the master list
                 }
             }
         }
@@ -61,7 +64,7 @@ export async function main(ns) {
                 // Machine should now be nuked and open
             };
             // if Server has already been breached, and hackscript isn't already running, run w/ threads
-            if (blacklist.find(e => e === network[i]) === undefined) { // Check if server is in the blacklist
+            if (blacklist.find(e => e === network[i]) === undefined && !network[i].includes(ownedServerName)) { // Check if server is in the blacklist
 
                 if (ns.hasRootAccess(network[i]) && ns.getHackingLevel() >= ns.getServerRequiredHackingLevel(network[i])) {
                     if (!ns.isRunning("hackscript.js", ns.getHostname(), network[i])) {
@@ -75,7 +78,7 @@ export async function main(ns) {
         await ns.sleep(150000) // 150secs
     }; // ~~ end of the while true loop
 
-    function hacksCheck() {
+    function hacksCheck() { //Checks how many hacks are available on Home
         let hacks = 0;
         if (ns.fileExists("BruteSSH.exe", "home")) { hacks++ };
         if (ns.fileExists("FTPCrack.exe", "home")) { hacks++ };
@@ -88,15 +91,15 @@ export async function main(ns) {
     };
 
     function threadCount() {
-        let serverRam = ns.getServerMaxRam(currentPC);
-        let hackRam = ns.getScriptRam("hackscript.js");
-        let threadMultiplier = Math.ceil(Math.sqrt(serverRam) / 8)
-        if (ns.args[0] !== undefined) {
-            threadMultiplier = ns.args[0] * threadMultiplier;
-        }
+        const serverRam = ns.getServerMaxRam(currentPC); // finds server RAM
+        const hackRam = (ns.getScriptRam("hackscript.js"))*1.05; // how big is hackscript?
+
+        const maxThreads = (serverRam / hackRam) - 5;
+        const serverCount = 63;
+        const threadsPerServer = maxThreads/serverCount;
+        const threadMultiplier = threadsPerServer / threadRatio.reduce((x,y) => x + y, 0);
 
         return threadRatio.map(x => x * threadMultiplier)
         // return array, hacks / grows / weaken
     }
 }
-
