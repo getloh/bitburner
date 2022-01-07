@@ -1,6 +1,6 @@
 // 'Breaker' bot for Bitburner - https://danielyxie.github.io/bitburner/
 // Runs infinitely - Continually polls servers to see if they can be rooted, then runs hack/weak/growscript on them
-// Version 3.41 - Remade the RAM/thread calculator + amended method of filtering own servers
+// Version 3.42 - Added case for very low server RAM after a new bitnode
 
 export async function main(ns) {
 
@@ -98,7 +98,9 @@ export async function main(ns) {
         const serverCount = 63;
         const threadsPerServer = maxThreads/serverCount;
         const threadMultiplier = threadsPerServer / threadRatio.reduce((x,y) => x + y, 0);
-
+        if(serverRam <= 64){
+            return [1, 4, 2];
+        }
         return threadRatio.map(x => x * threadMultiplier)
         // return array, hacks / grows / weaken
     }
