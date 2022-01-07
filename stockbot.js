@@ -11,8 +11,8 @@ export async function main(ns) {
     let portfolio = []; // init portfolio
     let cycle = 0;
 // ~~~~~~~You can edit these~~~~~~~~
-    const forecastThresh = 0.65; // Buy above this confidence level (forecast%)
-    const minimumCash = 50000000; // Minimum cash to keep
+    const FORECAST_THRESH = 0.65; // Buy above this confidence level (forecast%)
+    const MIN_CASH = 50000000; // Minimum cash to keep
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     ns.print("Starting run - Do we own any stocks?"); //Finds and adds any stocks we already own
@@ -36,7 +36,7 @@ export async function main(ns) {
                 }
             }
 
-            else if (ns.stock.getForecast(stock) >= forecastThresh){ // if the forecast is better than threshold and we don't own then BUY
+            else if (ns.stock.getForecast(stock) >= FORECAST_THRESH){ // if the forecast is better than threshold and we don't own then BUY
                 buyStock(stock);
             }
         } // end of for loop (iterating stockSymbols)
@@ -70,7 +70,7 @@ export async function main(ns) {
     };
 
     function stockBuyQuantCalc(stockPrice, stock){ // Calculates how many shares to buy
-        let playerMoney = ns.getServerMoneyAvailable('home') - minimumCash;
+        let playerMoney = ns.getServerMoneyAvailable('home') - MIN_CASH;
         let maxSpend = playerMoney * 0.25;
         let calcShares = maxSpend/stockPrice;
         let maxShares = ns.stock.getMaxShares(stock);
