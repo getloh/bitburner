@@ -1,16 +1,16 @@
 // Server purchasing script for Bitburner - https://danielyxie.github.io/bitburner/
 // Runs until satisfied, will rebuy servers money is sufficient and server is worse than 25% of ram. Run with 'f' argument to force rebuy
 
-// Version 1.21
-// Cleanup and editable variables
-
+// Version 1.22
+// Added additional comments and MAIN_SCRIPT variable so that the code will be usable for others
 
 export async function main(ns) {
 
     // ~~~~~~~~~Editable variables~~~~~~~~~~~
-    const SVRNAME = "plex";      // What hostname your purchased servers will have
-    const MIN_RAM = 32;          // Minimum RAM you want to buy for a server
-    const SVR_RAM_RATIO = 2;     // Target RAM for server is "Home" RAM, divided by SVR_RAM_RATIO, must = power of 2 (0.5, 1, 2, 4...). eg. '2' is 50% of home RAM
+    const SVRNAME = "plex";             // What hostname your purchased servers will have
+    const MIN_RAM = 32;                 // Minimum RAM you want to buy for a server
+    const SVR_RAM_RATIO = 2;            // Target RAM for server is "Home" RAM, divided by SVR_RAM_RATIO, must = power of 2 (0.5, 1, 2, 4...). eg. '2' is 50% of home RAM
+    const MAIN_SCRIPT = "breaker.js"    // Name of your main script that you want to upload
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     let currentServers = ns.getPurchasedServers();
@@ -22,9 +22,9 @@ export async function main(ns) {
     // if server is not running scripts, overwrite existing breaker and run.
     ns.print('Starting scripts on existing servers...')
     for(let x = 0; x < currentServers.length; x++){
-        if (!ns.isRunning("breaker.js", currentServers[x])){ 
-            await ns.scp("breaker.js", currentServers[x]);
-            ns.exec("breaker.js", currentServers[x], 1);
+        if (!ns.isRunning(MAIN_SCRIPT, currentServers[x])){ 
+            await ns.scp(MAIN_SCRIPT, currentServers[x]);
+            ns.exec(MAIN_SCRIPT, currentServers[x], 1);
         }
     };
 
@@ -38,13 +38,17 @@ export async function main(ns) {
     while (i < serverMax) {
             // Check if we have enough money to purchase a server
         if (ns.getServerMoneyAvailable("home") > ns.getPurchasedServerCost(ram)) {
-            // if sufficient money, buy server, name it, upload 4x scripts and exec breaker.js
+            // if sufficient money, buy server, name it, upload scripts and exec MAIN_SCRIPT
             let hostname = ns.purchaseServer(SVRNAME + i, ram);
-            await ns.scp("breaker.js", hostname);
+            await ns.scp(MAIN_SCRIPT, hostname);
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            // Add any extra scripts you want to upload here, or delete the lines
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             await ns.scp("hackscript.js", hostname);
             await ns.scp("growscript.js", hostname);
             await ns.scp("weakscript.js", hostname);
-            ns.exec("breaker.js", hostname, 1);
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            ns.exec(MAIN_SCRIPT, hostname, 1);
             ns.toast(`Server ${hostname} was purchased`, "success")
             ++i;
         }
