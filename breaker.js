@@ -1,6 +1,7 @@
 // 'Breaker' bot for Bitburner - https://danielyxie.github.io/bitburner/
 // Runs infinitely - Continually polls servers to see if they can be rooted, then runs hack/weak/growscript on them
-// Version 3.42 - Added case for very low server RAM after a new bitnode
+// Version 3.43 - Added better thread calculating logic
+// resolved bugs from 3.42 - still does not work well at <1tb , doesn't fill RAM, hackscript minimum threads needs to be 1
 
 export async function main(ns) {
 
@@ -14,9 +15,10 @@ export async function main(ns) {
     const currentPC = ns.getHostname();
     let network = ns.scan(currentPC); // Will list all computers on network
     let portHacks = 0;
-    let threads = threadCount() //[hack, grow, weaken]
+     
 
     while (true) {
+        let loopNum = 0;
         // -------- This loop scans the wide network and adds more nodes each scan ---------
         for (let i = 0; i < network.length; i++) {          // for each computer, scan it's network
             let iList = ns.scan(network[i]);                // each computers network scan result is iList
@@ -26,7 +28,7 @@ export async function main(ns) {
                 }
             }
         }
-
+        let threads = threadCount() //[hack, grow, weaken]
         portHacks = hacksCheck();
 
         // ------- This loop breaches servers found in the above loop ---------
@@ -75,7 +77,10 @@ export async function main(ns) {
                 }
             }
         } // ~~~ End of the for loop
-        await ns.sleep(150000) // 150secs
+        await ns.sleep(150000); // 150secs
+        loopNum++;
+
+        if (loopNum >= 50){ns.toast('Consider restarting to re-evaluate threadcount')}
     }; // ~~ end of the while true loop
 
     function hacksCheck() { //Checks how many hacks are available on Home
@@ -94,14 +99,21 @@ export async function main(ns) {
         const serverRam = ns.getServerMaxRam(currentPC); // finds server RAM
         const hackRam = (ns.getScriptRam("hackscript.js"))*1.05; // how big is hackscript?
 
+        let serverCount = 0;
+        for (let i = 0; i < network.length; i++){
+            if (blacklist.find(e => e === network[i]) === undefined && !network[i].includes(ownedServerName) && ns.hasRootAccess(network[i]) ) {
+                serverCount++;
+            }
+        }
+
         const maxThreads = (serverRam / hackRam) - 5;
-        const serverCount = 63;
+        // const serverCount = 63;
         const threadsPerServer = maxThreads/serverCount;
         const threadMultiplier = threadsPerServer / threadRatio.reduce((x,y) => x + y, 0);
         if(serverRam <= 64){
             return [1, 4, 2];
         }
-        return threadRatio.map(x => x * threadMultiplier)
+        return threadRatio.map(x => Math.ceil(x * threadMultiplier))
         // return array, hacks / grows / weaken
     }
 }
