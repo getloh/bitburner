@@ -1,8 +1,10 @@
 // Hacknet NODES script for Bitburner - https://danielyxie.github.io/bitburner/
 // Runs until satisfied (x nodes @ max strength)
 // Allocates 33% of your bank account to use every 10 minutes.
-// Version 1.01 - Functional? Basic debug up to level 100 complete
+// Version 1.02 - Functional? Slightly bugged, added debug print, hopefully resolved failure due to owning no nodes before init
 // Cleaned up code significantly, reorganized, set amendable variables
+
+// bugs - Some strange cases where it triggers the default case in the switch argument, but logs with a valid case..
 
 export async function main(ns) {
     ns.disableLog('getServerMoneyAvailable');
@@ -16,9 +18,9 @@ export async function main(ns) {
     let SPEND_LIMIT = 3 // Will spend your money, divided by this number. 3=33%, 4=25%, etc
 
     // Maximums, change if you really want to...
-    const levelMax = 200;
+    const levelMax = 180; // will increase to 200 if >1T in bank
     const ramMax = 64;
-    let coreMax = 8;
+    let coreMax = 8; //will increase to 16 if >1T in bank
     if (ns.getServerMoneyAvailable("home") > 1000000000000){
         coreMax = 16;    }
     
@@ -36,6 +38,10 @@ export async function main(ns) {
     // Do not touch below this line unless you know what you're doing
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     let nodesOwned = ns.hacknet.numNodes();
+    if (nodesOwned === 0){
+        ns.hacknet.purchaseNode();
+        nodesOwned = 1
+    }
 
     while (complete === false){
         let nodeCost = ns.hacknet.getPurchaseNodeCost();
@@ -70,7 +76,7 @@ export async function main(ns) {
                         cashAvail -= getCheapest(i)[0];
                         ns.print(`node ${i} core purchased`)
                     default:
-                        ns.print("error. case not found");
+                        ns.print(`error. case not found - case ref ${getCheapest(i)[1]}`);
                 }
             }
             // insufficient money, break out of loop for now.
@@ -78,18 +84,19 @@ export async function main(ns) {
 
         } // end of for loop. At this state, either we ran out of money, or all targets have been met
 
-        if (cashAvail > getCheapest(1)[0]){
+        if (cashAvail > getCheapest(1)[0]){ //if Cash > Node1's upgradecost
 
             if (levelTarget < levelMax){
                 levelTarget += 10;
                 ns.print(`Level target was increased, now ${levelTarget}`)
                 };
-            if (ramTarget < ramMax && levelTarget > 120){
+            if (ramTarget < ramMax && levelTarget > 100){
                 ramTarget *= 2;
                 ns.print(`RAM target was increased, now ${ramTarget}`)
                 };
             if (ns.getServerMoneyAvailable('home') > 1000000000000){        // if 1T in bank, coreMax set to 16
-                    coreMax = 16;
+                levelMax = 200;
+                coreMax = 16;
                 };
             if (coreTarget < coreMax && ramTarget >= 32){
                 coreTarget += 1;
@@ -104,6 +111,7 @@ export async function main(ns) {
                 ns.toast("Hacknet at max")
             }
             await ns.sleep (2000);
+            ns.print(`cash at end of an upgrade cycle is ${cashAvail}`)
         }
         else {
             ns.print("insufficient money reserves, sleeping for 10min");
