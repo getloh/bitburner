@@ -29,6 +29,13 @@ export async function main(ns) {
         };
     };
 
+    if (ns.getServerMoneyAvailable('home') < MIN_CASH){
+        ns.print("Stockbot has no money to play with!");
+        ns.print("Stockbot will nap for 10 mins while you make some money");
+        ns.sleep(600000);
+    };
+
+
     ns.print("all stocks should be added, starting main loop");
     while(true){
         for(const stock of stockSymbols){                               // for each stock symbol

@@ -1,8 +1,8 @@
 // Server purchasing script for Bitburner - https://danielyxie.github.io/bitburner/
 // Runs until satisfied, will rebuy servers money is sufficient and server is worse than 25% of ram. Run with 'f' argument to force rebuy
 
-// Version 1.22
-// Added additional comments and MAIN_SCRIPT variable so that the code will be usable for others
+// Version 1.221
+// Small change to an ns.print
 
 export async function main(ns) {
 
@@ -53,7 +53,7 @@ export async function main(ns) {
             ++i;
         }
         else {
-            ns.print(`cannot buy yet - price is `+ ns.getPurchasedServerCost(ram))
+            ns.print(`cannot buy yet - price is ${serverPriceInfoText} M`)
             await ns.sleep(20000)
         }
     } // end of while <serverMax
