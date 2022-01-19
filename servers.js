@@ -1,8 +1,8 @@
 // Server purchasing script for Bitburner - https://danielyxie.github.io/bitburner/
 // Runs until satisfied, will rebuy servers money is sufficient and server is worse than 25% of ram. Run with 'f' argument to force rebuy
 
-// Version 1.221
-// Small change to an ns.print
+// Version 1.222
+// Small change to an ns.print + improvements to rebuy prints
 
 export async function main(ns) {
 
@@ -70,7 +70,11 @@ export async function main(ns) {
                 ns.spawn("servers.js", 1);                          // Kills and Restarts this script to start buy process
             }
         }
+        ns.print("25 servers already");
+        ns.print("servers are underpowered, but we don't have enough money to upgrade yet");
+        ns.print(`Min Money required: $ ${((ns.getPurchasedServerCost(ram) * 13)/1000000000).toFixed(2)} B`)
         await ns.sleep (900000);
+
     }
 
     function calculateRam() {
